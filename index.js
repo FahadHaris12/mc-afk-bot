@@ -1,40 +1,75 @@
-const mineflayer = require('mineflayer')
+const mineflayer = require("mineflayer");
 
+// =================== CONFIG ===================
 const config = {
-  host: process.env.MC_HOST || "vnxace.aternos.me",
-  port: parseInt(process.env.MC_PORT) || 61163,
-  username: process.env.MC_USERNAME || "kundi",
-  version: process.env.MC_VERSION || false // set like "1.20.4" if needed
-}
+  host: "vnxace.aternos.me", // your Aternos server address
+  port: 61163,                     // your server port
+  username: "AFKBot_04",           // change if duplicate login
+  version: false,                   // auto-detect Minecraft version
+
+  jumpInterval: 3000,               // jump every 3 seconds
+  moveInterval: 2000,               // change random direction every 2 seconds
+  rejoinInterval: 30000             // reconnect after 30 seconds if disconnected
+};
+// ===============================================
+
+let bot;
 
 function createBot() {
-  const bot = mineflayer.createBot(config)
+  bot = mineflayer.createBot({
+    host: config.host,
+    port: config.port,
+    username: config.username,
+    version: config.version
+  });
 
-  bot.on('login', () => {
-    console.log("✅ Bot logged in")
-  })
+  bot.on("login", () => {
+    console.log(`[bot] Logged in as ${bot.username} on ${config.host}:${config.port}`);
+    startAFK();
+  });
 
-  bot.on('spawn', () => {
-    console.log("🌍 Bot spawned")
+  bot.on("end", () => {
+    console.log("[bot] Disconnected. Reconnecting in 30s...");
+    setTimeout(createBot, config.rejoinInterval);
+  });
 
-    // Anti AFK movement every 10 seconds
-    setInterval(() => {
-      if (!bot.entity) return
-      bot.setControlState('jump', true)
-      setTimeout(() => bot.setControlState('jump', false), 500)
+  bot.on("kicked", reason => console.log("[bot] Kicked:", reason));
+  bot.on("error", err => console.log("[bot] Error:", err));
+}
 
-      bot.setControlState('forward', true)
-      setTimeout(() => bot.setControlState('forward', false), 1000)
-    }, 10000)
-  })
+function startAFK() {
+  if (!bot) return;
 
-  bot.on('kicked', (reason) => {
-    console.log("❌ Kicked:", reason)
-  })
+  // Jump loop
+  setInterval(() => {
+    if (!bot || !bot.entity) return;
+    bot.setControlState("jump", true);
+    setTimeout(() => bot.setControlState("jump", false), 200);
+  }, config.jumpInterval);
 
-  bot.on('error', (err) => {
-    console.log("⚠️ Error:", err.message)
-  })
+  // Random movement loop
+  setInterval(() => {
+    if (!bot || !bot.entity) return;
+    const directions = ["forward", "back", "left", "right"];
+    directions.forEach(dir => bot.setControlState(dir, false));
+    const randomDir = directions[Math.floor(Math.random() * directions.length)];
+    bot.setControlState(randomDir, true);
+  }, config.moveInterval);
+}
+
+// Start the bot
+createBot();  // Random movement loop
+  setInterval(() => {
+    if (!bot || !bot.entity) return;
+    const directions = ["forward", "back", "left", "right"];
+    directions.forEach(dir => bot.setControlState(dir, false));
+    const randomDir = directions[Math.floor(Math.random() * directions.length)];
+    bot.setControlState(randomDir, true);
+  }, config.moveInterval);
+}
+
+// Start the bot
+createBot();  })
 
   bot.on('end', () => {
     console.log("🔄 Disconnected. Reconnecting in 5 seconds...")
