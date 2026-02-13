@@ -26,7 +26,7 @@ function createBot() {
   const bot = mineflayer.createBot({
     host: "vnxace.aternos.me", // 🔁 CHANGE
     port: 61163,                  // 🔁 CHANGE if needed
-    username: "AFK_Bot",          // 🔁 Bot name
+    username: "kundi",          // 🔁 Bot name
     version: false
   });
 
