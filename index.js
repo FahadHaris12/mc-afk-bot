@@ -1,111 +1,60 @@
-const mineflayer = require('mineflayer');
-const express = require("express");
+const mineflayer = require('mineflayer')
 
-//
-// 🌐 Web server (Fly health check + optional monitor)
-//
-const app = express();
-
-app.get("/", (req, res) => {
-  res.send("AFK Bot is running!");
-});
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`Web server running on port ${PORT}`);
-});
-
-//
-// 🤖 BOT CREATION FUNCTION
-//
-function createBot() {
-
-  console.log("Creating bot...");
-
-  const bot = mineflayer.createBot({
-    host: "vnxace.aternos.me", // 🔁 CHANGE
-    port: 61163,                  // 🔁 CHANGE if needed
-    username: "kundi",          // 🔁 Bot name
-    version: false
-  });
-
-  //
-  // ✅ When bot joins
-  //
-  bot.on("spawn", () => {
-    console.log("✅ Bot joined the server");
-
-    startAntiAfk(bot);
-  });
-
-  //
-  // 🔄 Auto reconnect after disconnect
-  //
-  bot.on("end", () => {
-    console.log("❌ Disconnected. Rejoining in 15 sec...");
-    setTimeout(createBot, 15000);
-  });
-
-  //
-  // ⚠️ Error handler
-  //
-  bot.on("error", (err) => {
-    console.log("⚠️ Bot error:", err.message);
-  });
-
-  //
-  // 💬 Anti-kick chat (optional)
-  //
-  setInterval(() => {
-    if (bot.player) {
-      bot.chat("AFK but alive 👀");
-    }
-  }, 5 * 60 * 1000); // Every 5 min
+const config = {
+  host: process.env.MC_HOST || "your_server_ip",
+  port: parseInt(process.env.MC_PORT) || 25565,
+  username: process.env.MC_USERNAME || "BotName",
+  version: process.env.MC_VERSION || false // set like "1.20.4" if needed
 }
 
-createBot();
+function createBot() {
+  const bot = mineflayer.createBot(config)
 
-//
-// 🕹️ HUMAN-LIKE MOVEMENT SYSTEM
-//
-function startAntiAfk(bot) {
+  bot.on('login', () => {
+    console.log("✅ Bot logged in")
+  })
 
-  setInterval(() => {
+  bot.on('spawn', () => {
+    console.log("🌍 Bot spawned")
 
-    const actions = [
-      "forward",
-      "back",
-      "left",
-      "right"
-    ];
+    // Anti AFK movement every 10 seconds
+    setInterval(() => {
+      if (!bot.entity) return
+      bot.setControlState('jump', true)
+      setTimeout(() => bot.setControlState('jump', false), 500)
 
-    const action = actions[Math.floor(Math.random() * actions.length)];
+      bot.setControlState('forward', true)
+      setTimeout(() => bot.setControlState('forward', false), 1000)
+    }, 10000)
+  })
 
-    console.log("Moving:", action);
+  bot.on('kicked', (reason) => {
+    console.log("❌ Kicked:", reason)
+  })
 
-    bot.setControlState(action, true);
+  bot.on('error', (err) => {
+    console.log("⚠️ Error:", err.message)
+  })
 
-    // Random jump
-    if (Math.random() > 0.6) {
-      bot.setControlState("jump", true);
+  bot.on('end', () => {
+    console.log("🔄 Disconnected. Reconnecting in 5 seconds...")
+    setTimeout(createBot, 5000)
+  })
+}
 
-      setTimeout(() => {
-        bot.setControlState("jump", false);
-      }, 500);
-    }
+createBot()
 
-    // Random camera movement
-    const yaw = Math.random() * Math.PI * 2;
-    const pitch = (Math.random() - 0.5) * Math.PI / 2;
+// Prevent Railway from sleeping (basic web server)
+const express = require('express')
+const app = express()
 
-    bot.look(yaw, pitch, true);
+app.get('/', (req, res) => {
+  res.send('Bot is running!')
+})
 
-    // Stop movement after random time
-    setTimeout(() => {
-      bot.setControlState(action, false);
-    }, Math.floor(Math.random() * 3000) + 2000);
-
-  }, 5000); // Every 5 sec
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`🌐 Web server running on port ${PORT}`)
+})  }, 5000); // Every 5 sec
 }
 
