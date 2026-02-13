@@ -1,9 +1,9 @@
 const mineflayer = require('mineflayer')
 
 const config = {
-  host: process.env.MC_HOST || "your_server_ip",
-  port: parseInt(process.env.MC_PORT) || 25565,
-  username: process.env.MC_USERNAME || "BotName",
+  host: process.env.MC_HOST || "vnxace.aternos.me",
+  port: parseInt(process.env.MC_PORT) || 61163,
+  username: process.env.MC_USERNAME || "kundi",
   version: process.env.MC_VERSION || false // set like "1.20.4" if needed
 }
 
